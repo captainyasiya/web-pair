@@ -20,10 +20,10 @@ function removeFile(FilePath) {
 
 router.get('/', async (req, res) => {
     let num = req.query.number;
-    async function සදුනිPair() {
+    async function saduniPair() {
         const { state, saveCreds } = await useMultiFileAuthState(`./session`);
         try {
-            let සදුනිPairWeb = makeWASocket({
+            let saduniPairWeb = makeWASocket({
                 auth: {
                     creds: state.creds,
                     keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "fatal" }).child({ level: "fatal" })),
@@ -33,25 +33,25 @@ router.get('/', async (req, res) => {
                 browser: Browsers.macOS("Safari"),
             });
 
-            if (!සදුනිPairWeb.authState.creds.registered) {
+            if (!saduniPairWeb.authState.creds.registered) {
                 await delay(1500);
                 num = num.replace(/[^0-9]/g, '');
-                const code = await සදුනිPairWeb.requestPairingCode(num);
+                const code = await saduniPairWeb.requestPairingCode(num);
                 if (!res.headersSent) {
                     await res.send({ code });
                 }
             }
 
-            සදුනිPairWeb.ev.on('creds.update', saveCreds);
-            සදුනිPairWeb.ev.on("connection.update", async (s) => {
+            saduniPairWeb.ev.on('creds.update', saveCreds);
+            saduniPairWeb.ev.on("connection.update", async (s) => {
                 const { connection, lastDisconnect } = s;
                 if (connection === "open") {
                     try {
                         await delay(10000);
-                        const sessionසදුනි = fs.readFileSync('./session/creds.json');
+                        const sessionsaduni = fs.readFileSync('./session/creds.json');
 
                         const auth_path = './session/';
-                        const user_jid = jidNormalizedUser(සදුනිPairWeb.user.id);
+                        const user_jid = jidNormalizedUser(saduniPairWeb.user.id);
 
                       function randomMegaId(length = 6, numberLength = 4) {
                       const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -69,12 +69,12 @@ router.get('/', async (req, res) => {
 
                         const sid = string_session;
 
-                        const dt = await සදුනිPairWeb.sendMessage(user_jid, {
+                        const dt = await saduniPairWeb.sendMessage(user_jid, {
                             text: sid
                         });
 
                     } catch (e) {
-                        exec('pm2 restart සදුනි');
+                        exec('pm2 restart saduni');
                     }
 
                     await delay(100);
@@ -82,25 +82,25 @@ router.get('/', async (req, res) => {
                     process.exit(0);
                 } else if (connection === "close" && lastDisconnect && lastDisconnect.error && lastDisconnect.error.output.statusCode !== 401) {
                     await delay(10000);
-                    සදුනිPair();
+                    saduniPair();
                 }
             });
         } catch (err) {
-            exec('pm2 restart සදුනි-md');
+            exec('pm2 restart saduni-md');
             console.log("service restarted");
-            සදුනිPair();
+            saduniPair();
             await removeFile('./session');
             if (!res.headersSent) {
                 await res.send({ code: "Service Unavailable" });
             }
         }
     }
-    return await සදුනිPair();
+    return await saduniPair();
 });
 
 process.on('uncaughtException', function (err) {
     console.log('Caught exception: ' + err);
-    exec('pm2 restart සදුනි');
+    exec('pm2 restart saduni');
 });
 
 
